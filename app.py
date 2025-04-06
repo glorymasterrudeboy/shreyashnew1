@@ -116,8 +116,7 @@ def fetch_news(symbol):
         return []
 
 # AI-Based Financial Sentiment using FinBERT
-finbert = hf_pipeline("sentiment-analysis", model="ProsusAI/finbert")
-
+# finbert = hf_pipeline("sentiment-analysis", model="ProsusAI/finbert")
 def analyze_news_sentiment(news_articles):
     results = []
     for article in news_articles:
