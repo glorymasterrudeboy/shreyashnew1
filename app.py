@@ -199,3 +199,6 @@ for stock in bullish_list:
 
 # Refresh
 st_autorefresh = st.experimental_rerun() if st.button("🔁 Refresh Now") else time.sleep(60)
+
+def detect_candlestick_patterns(data):
+    return {}  # Temporarily disabled due to missing TA-Lib
