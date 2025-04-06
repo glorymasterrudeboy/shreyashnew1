@@ -29,7 +29,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # NSE Extended Stock List (Top 200+)
-nse_top200 = pd.read_csv("https://raw.githubusercontent.com/datasets/nse-stocks/main/data/nse_stocks.csv")['Symbol'].apply(lambda x: x + ".NS").tolist()
+nse_top200 = [     "RELIANCE.NS", "TCS.NS", "INFY.NS", "HDFCBANK.NS", "ICICIBANK.NS", "SBIN.NS",     "ADANIENT.NS", "ADANIPORTS.NS", "AXISBANK.NS", "LT.NS", "MARUTI.NS", "TATAMOTORS.NS",     "ITC.NS", "HINDUNILVR.NS", "KOTAKBANK.NS", "BAJFINANCE.NS", "WIPRO.NS", "SUNPHARMA.NS",     "COALINDIA.NS", "NTPC.NS", "ONGC.NS", "POWERGRID.NS", "BPCL.NS", "EICHERMOT.NS",     "HCLTECH.NS", "TECHM.NS", "UPL.NS", "ULTRACEMCO.NS", "TITAN.NS", "JSWSTEEL.NS",     "BHARTIARTL.NS", "ASIANPAINT.NS", "HDFCLIFE.NS", "DIVISLAB.NS", "BRITANNIA.NS",     "SHREECEM.NS", "NESTLEIND.NS", "CIPLA.NS", "BAJAJFINSV.NS", "GRASIM.NS",     "HINDALCO.NS", "DRREDDY.NS", "TATACONSUM.NS", "HEROMOTOCO.NS", "SBILIFE.NS",     "ICICIPRULI.NS", "M&M.NS", "PIDILITIND.NS", "DLF.NS", "BANKBARODA.NS", "INDUSINDBK.NS",     "IOC.NS", "PNB.NS", "GAIL.NS", "BEL.NS", "VEDL.NS", "TRENT.NS", "NAVINFLUOR.NS",     "ABB.NS", "AUBANK.NS", "BAJAJ-AUTO.NS", "PAGEIND.NS", "LTI.NS", "ADANIGREEN.NS",     "ADANIPOWER.NS", "TATAPOWER.NS", "TATACHEM.NS", "SRF.NS", "ZEEL.NS", "HAVELLS.NS" ]
 
 # Sidebar
 st.sidebar.header("🔎 Select a Stock")
