@@ -5,8 +5,6 @@ import streamlit as st
 import plotly.graph_objs as go
 import requests
 import time
-import smtplib
-from email.mime.text import MIMEText
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
@@ -45,16 +43,16 @@ if st.sidebar.button("🤖 Bot Scanner"):
         try:
             data = yf.Ticker(stock).history(interval='15m', period='5d')
             def compute_rsi(series, period=14):
-    delta = series.diff()
-    gain = delta.where(delta > 0, 0)
-    loss = -delta.where(delta < 0, 0)
-    avg_gain = gain.rolling(window=period).mean()
-    avg_loss = loss.rolling(window=period).mean()
-    rs = avg_gain / avg_loss
-    rsi = 100 - (100 / (1 + rs))
-    return rsi
+                delta = series.diff()
+                gain = delta.where(delta > 0, 0)
+                loss = -delta.where(delta < 0, 0)
+                avg_gain = gain.rolling(window=period).mean()
+                avg_loss = loss.rolling(window=period).mean()
+                rs = avg_gain / avg_loss
+                rsi = 100 - (100 / (1 + rs))
+                return rsi
 
-rsi = compute_rsi(data['Close'])
+            rsi = compute_rsi(data['Close'])
 
             if rsi.iloc[-1] > 60:
                 bot_results.append({
@@ -76,21 +74,7 @@ def fetch_stock_data(symbol, interval='5m', period='5d'):
     return data
 
 def detect_candlestick_patterns(data):
-    patterns = {
-        'Hammer': talib.CDLHAMMER,
-        'Shooting Star': talib.CDLSHOOTINGSTAR,
-        'Doji': talib.CDLDOJI,
-        'Bullish Engulfing': talib.CDLENGULFING,
-        'Bearish Engulfing': talib.CDLENGULFING,
-        'Morning Star': talib.CDLMORNINGSTAR,
-        'Evening Star': talib.CDLEVENINGSTAR
-    }
-    results = {}
-    for pattern_name, pattern_func in patterns.items():
-        result = pattern_func(data['Open'], data['High'], data['Low'], data['Close'])
-        if result.iloc[-1] != 0:
-            results[pattern_name] = int(result.iloc[-1])
-    return results
+    return {}  # Temporarily disabled due to missing TA-Lib
 
 def check_volume_spike(data, threshold=20):
     avg_volume = data['Volume'][:-1].mean()
@@ -131,16 +115,16 @@ def get_bullish_momentum_stocks():
         try:
             data = fetch_stock_data(stock, interval='1d', period='7d')
             def compute_rsi(series, period=14):
-    delta = series.diff()
-    gain = delta.where(delta > 0, 0)
-    loss = -delta.where(delta < 0, 0)
-    avg_gain = gain.rolling(window=period).mean()
-    avg_loss = loss.rolling(window=period).mean()
-    rs = avg_gain / avg_loss
-    rsi = 100 - (100 / (1 + rs))
-    return rsi
+                delta = series.diff()
+                gain = delta.where(delta > 0, 0)
+                loss = -delta.where(delta < 0, 0)
+                avg_gain = gain.rolling(window=period).mean()
+                avg_loss = loss.rolling(window=period).mean()
+                rs = avg_gain / avg_loss
+                rsi = 100 - (100 / (1 + rs))
+                return rsi
 
-rsi = compute_rsi(data['Close'])
+            rsi = compute_rsi(data['Close'])
 
             if rsi.iloc[-1] > 60:
                 bullish.append({
@@ -166,36 +150,6 @@ def plot_candlestick(data, symbol):
     fig.add_hline(y=resistance, line_color="red", line_dash="dot", annotation_text="Resistance")
     st.plotly_chart(fig, use_container_width=True)
 
-# Email Alert
-EMAIL = "your_email@gmail.com"
-PASSWORD = "your_password"
-RECIPIENT = "recipient_email@gmail.com"
-
-def send_email(subject, message):
-    try:
-        msg = MIMEText(message)
-        msg['Subject'] = subject
-        msg['From'] = EMAIL
-        msg['To'] = RECIPIENT
-
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-            server.login(EMAIL, PASSWORD)
-            server.sendmail(EMAIL, RECIPIENT, msg.as_string())
-    except Exception as e:
-        print("Email sending failed:", e)
-
-# Free SMS Alert via Textbelt API
-def send_sms_alert(message):
-    try:
-        resp = requests.post('https://textbelt.com/text', {
-            'phone': 'your_number_here',
-            'message': message,
-            'key': 'textbelt'
-        })
-        print(resp.json())
-    except Exception as e:
-        print("SMS sending failed:", e)
-
 # Fetch and display data
 data = fetch_stock_data(selected_symbol)
 patterns = detect_candlestick_patterns(data)
@@ -203,16 +157,6 @@ volume_spike, current_vol, avg_vol = check_volume_spike(data)
 news_articles = fetch_news(selected_symbol)
 sentiment_analysis = analyze_news_sentiment(news_articles)
 bullish_list = get_bullish_momentum_stocks()
-
-# Alerts
-if patterns:
-    alert_msg = f"Pattern(s): {', '.join(patterns.keys())} in {selected_symbol}"
-    send_email("Pattern Detected", alert_msg)
-    send_sms_alert(alert_msg)
-if volume_spike:
-    spike_msg = f"Volume spike in {selected_symbol}. Current: {int(current_vol)} vs Avg: {int(avg_vol)}"
-    send_email("Volume Spike", spike_msg)
-    send_sms_alert(spike_msg)
 
 # Layout
 col1, col2 = st.columns([3, 2])
