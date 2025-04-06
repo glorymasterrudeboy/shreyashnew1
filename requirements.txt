@@ -1,0 +1,13 @@
+streamlit
+yfinance
+pandas
+ta-lib
+plotly
+requests
+smtplib
+email
+scikit-learn
+transformers
+torch
+textblob
+matplotlib
