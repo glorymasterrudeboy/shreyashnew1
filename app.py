@@ -8,7 +8,6 @@ import time
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
-from transformers import pipeline as hf_pipeline
 
 # UI Setup
 st.set_page_config(layout="wide")
