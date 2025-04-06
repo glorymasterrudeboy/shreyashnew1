@@ -1,6 +1,5 @@
 import yfinance as yf
 import pandas as pd
-import talib
 import datetime
 import streamlit as st
 import plotly.graph_objs as go
@@ -31,13 +30,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# NSE Top 200 Stocks - extended symbol list
-nse_top200 = [
-    "RELIANCE.NS", "TCS.NS", "INFY.NS", "HDFCBANK.NS", "ICICIBANK.NS", "AXISBANK.NS", "SBIN.NS",
-    "WIPRO.NS", "TATAMOTORS.NS", "ITC.NS", "HINDUNILVR.NS", "KOTAKBANK.NS", "LT.NS", "BHARTIARTL.NS",
-    "ASIANPAINT.NS", "MARUTI.NS", "BAJFINANCE.NS", "NESTLEIND.NS", "TITAN.NS", "POWERGRID.NS"
-    # Add up to 200 stocks here...
-]
+# NSE Extended Stock List (Top 200+)
+nse_top200 = pd.read_csv("https://raw.githubusercontent.com/datasets/nse-stocks/main/data/nse_stocks.csv")['Symbol'].apply(lambda x: x + ".NS").tolist()
 
 # Sidebar
 st.sidebar.header("🔎 Select a Stock")
@@ -50,7 +44,18 @@ if st.sidebar.button("🤖 Bot Scanner"):
     for stock in nse_top200:
         try:
             data = yf.Ticker(stock).history(interval='15m', period='5d')
-            rsi = talib.RSI(data['Close'])
+            def compute_rsi(series, period=14):
+    delta = series.diff()
+    gain = delta.where(delta > 0, 0)
+    loss = -delta.where(delta < 0, 0)
+    avg_gain = gain.rolling(window=period).mean()
+    avg_loss = loss.rolling(window=period).mean()
+    rs = avg_gain / avg_loss
+    rsi = 100 - (100 / (1 + rs))
+    return rsi
+
+rsi = compute_rsi(data['Close'])
+
             if rsi.iloc[-1] > 60:
                 bot_results.append({
                     "Stock": stock,
@@ -99,7 +104,7 @@ def fetch_news(symbol):
         url = f"https://newsapi.org/v2/everything?q={symbol}&apiKey=762424e0828643cca4d7247f51f97071"
         response = requests.get(url)
         articles = response.json().get("articles", [])
-        return articles[:5]  # Return raw news articles for sentiment analysis
+        return articles[:5]
     except:
         return []
 
@@ -125,7 +130,18 @@ def get_bullish_momentum_stocks():
     for stock in nse_top200:
         try:
             data = fetch_stock_data(stock, interval='1d', period='7d')
-            rsi = talib.RSI(data['Close'])
+            def compute_rsi(series, period=14):
+    delta = series.diff()
+    gain = delta.where(delta > 0, 0)
+    loss = -delta.where(delta < 0, 0)
+    avg_gain = gain.rolling(window=period).mean()
+    avg_loss = loss.rolling(window=period).mean()
+    rs = avg_gain / avg_loss
+    rsi = 100 - (100 / (1 + rs))
+    return rsi
+
+rsi = compute_rsi(data['Close'])
+
             if rsi.iloc[-1] > 60:
                 bullish.append({
                     "Stock": stock,
@@ -144,7 +160,6 @@ def plot_candlestick(data, symbol):
     fig.update_layout(title=f"{symbol} Candlestick Chart", xaxis_title="Time", yaxis_title="Price")
     st.plotly_chart(fig, use_container_width=True)
 
-    # Draw support/resistance (SMC-style)
     support = data['Low'].rolling(window=20).min().iloc[-1]
     resistance = data['High'].rolling(window=20).max().iloc[-1]
     fig.add_hline(y=support, line_color="green", line_dash="dot", annotation_text="Support")
@@ -189,7 +204,7 @@ news_articles = fetch_news(selected_symbol)
 sentiment_analysis = analyze_news_sentiment(news_articles)
 bullish_list = get_bullish_momentum_stocks()
 
-# Alert Handling
+# Alerts
 if patterns:
     alert_msg = f"Pattern(s): {', '.join(patterns.keys())} in {selected_symbol}"
     send_email("Pattern Detected", alert_msg)
@@ -202,23 +217,21 @@ if volume_spike:
 # Layout
 col1, col2 = st.columns([3, 2])
 
-# Trade Opportunities Block
 col1.subheader("🚀 Trade Setup Monitor")
 plot_candlestick(data, selected_symbol)
 if patterns:
     col1.success(f"Pattern Detected: {', '.join(patterns.keys())}")
 else:
     col1.info("No major pattern detected in last candle.")
-
 if volume_spike:
     col1.warning(f"🔺 Sudden Volume Spike! Current: {int(current_vol)} vs Avg: {int(avg_vol)}")
 
-# News Panel
+# News
 col2.subheader("📰 News & AI-Based Sentiment")
 for title, sentiment in sentiment_analysis:
     col2.markdown(f"**{sentiment}** - {title}")
 
-# Historical Breakout Tracker
+# Breakouts
 st.markdown("---")
 st.subheader("📊 Weekly Breakout Tracker")
 st.markdown("Stocks showing sudden spikes or breakouts in past week:")
@@ -230,7 +243,7 @@ breakout_log = pd.DataFrame({
 })
 st.dataframe(breakout_log, use_container_width=True)
 
-# Right Sidebar - Bullish Momentum Tracker
+# Sidebar Momentum
 st.sidebar.markdown("---")
 st.sidebar.header("📈 Bullish Momentum Stocks")
 for stock in bullish_list:
@@ -240,5 +253,5 @@ for stock in bullish_list:
         f"Volume: {stock['Volume']}"
     )
 
-# Auto-refresh every 60 seconds
+# Refresh
 st_autorefresh = st.experimental_rerun() if st.button("🔁 Refresh Now") else time.sleep(60)
