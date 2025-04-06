@@ -1,11 +1,11 @@
-streamlit
+streamlit==1.32.0
 yfinance
 pandas
-datetime
 plotly
 requests
 smtplib
 email
 scikit-learn
-transformers
 textblob
+transformers
+torch
